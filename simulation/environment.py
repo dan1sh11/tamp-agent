@@ -8,7 +8,6 @@ from .objects import (
     create_cylinder,
     create_sphere,
     create_capsule,
-    create_banana_like,
     create_box_container,
 )
 from .robot import PandaRobot
@@ -80,23 +79,24 @@ class TAMPEnvironment:
         z = self.config.table_top_z + 0.04
 
         specs = [
-            ("small_cube_red", "cube", (-0.18, -0.30)),
-            ("cube_blue", "cube", (0.05, -0.30)),
-            ("cylinder_green", "cylinder", (0.28, -0.30)),
-            ("cylinder_yellow", "cylinder", (-0.28, 0.05)),
-            ("sphere", "sphere", (-0.05, 0.08)),
-            ("capsule", "capsule", (0.20, 0.06)),
-            ("small_cube", "cube", (-0.38, 0.32)),
-            ("small_cylinder", "cylinder", (-0.12, 0.33)),
-            ("large_cube", "cube", (0.40, -0.02)),
+            ("small_cube_red", "cube", (-0.18, -0.30), (1, 0, 0, 1)),
+            ("large_cube_red", "cube", (0.05, -0.30), (1, 0, 0, 1)),
+            ("cylinder_red", "cylinder", (0.28, -0.30), (1, 0, 0, 1)),
+            ("cylinder_green", "cylinder", (-0.28, 0.05), (0, 1, 0, 1)),
+            ("sphere", "sphere", (-0.05, 0.08), (1.0, 1.0, 0.0, 1.0)),
+            ("capsule", "capsule", (0.20, 0.06), (1.0, 1.0, 0.0, 1.0)),
+            ("small_cube_blue", "cube", (-0.38, 0.32), (0,0,1,1)),
+            ("cylinder_yellow", "cylinder", (-0.12, 0.33), (1.0, 1.0, 0.0, 1.0)),
+            ("large_cube_blue", "cube", (0.40, -0.02), (0, 0, 1, 1)),
         ]
 
-        for name, kind, (x, y) in specs:
+        for name, kind, (x, y), rgba in specs:
             if kind == "cube":
                 obj = create_box(
                     name, [x, y, z],
                     [0.045, 0.045, 0.045],
                     mass=0.15,
+                    rgba=rgba
                 )
             elif kind == "cylinder":
                 obj = create_cylinder(
@@ -104,12 +104,14 @@ class TAMPEnvironment:
                     radius=0.045,
                     height=0.09,
                     mass=0.15,
+                    rgba=rgba
                 )
             elif kind == "sphere":
                 obj = create_sphere(
                     name, [x, y, z],
                     radius=0.05,
                     mass=0.12,
+                    rgba=rgba
                 )
             elif kind == "capsule":
                 obj = create_capsule(
@@ -117,11 +119,7 @@ class TAMPEnvironment:
                     radius=0.035,
                     height=0.10,
                     mass=0.12,
-                )
-            elif kind == "banana":
-                obj = create_banana_like(
-                    name, [x, y, z],
-                    mass=0.08,
+                    rgba=rgba
                 )
             else:
                 raise ValueError(f"Unknown object kind: {kind}")
