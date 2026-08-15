@@ -155,3 +155,10 @@ class TAMPEnvironment:
         while p.isConnected(self.client_id):
             p.stepSimulation()
             time.sleep(1.0 / self.config.simulation_hz)
+
+
+    def get_target_position(self, name):
+        if name == "box":
+            return self.config.box_center
+
+        return self.get_object_position(name)

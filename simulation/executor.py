@@ -43,7 +43,7 @@ class PlanExecutor:
         return p.getQuaternionFromEuler([0.0, 3.14159265, 0.0])
 
     def move_to(self, object_name: str):
-        x, y, z = self.env.get_object_position(object_name)
+        x, y, z = self.env.get_target_position(object_name)
 
         approach = [x, y, z + self.env.config.approach_height]
         target = [x, y, z + self.env.config.grasp_height_offset]
