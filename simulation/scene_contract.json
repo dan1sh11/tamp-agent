@@ -1,0 +1,30 @@
+{
+  "objects": [
+    "cube_red",
+    "cube_blue",
+    "cylinder_green",
+    "cylinder_yellow",
+    "sphere",
+    "capsule",
+    "small_cube",
+    "small_cylinder",
+    "large_cube"
+  ],
+  "receptacles": [
+    "box"
+  ],
+  "actions": {
+    "move_to": [
+      "object"
+    ],
+    "grasp": [
+      "object"
+    ],
+    "release": [],
+    "wait": [
+      "steps"
+    ],
+    "home": []
+  },
+  "planner_contract_note": "Use these stable symbolic names in the PDDL problem."
+}
