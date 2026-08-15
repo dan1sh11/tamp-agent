@@ -1,14 +1,14 @@
 {
   "objects": [
-    "cube_red",
-    "cube_blue",
+    "large_cube_red",
+    "large_cube_blue",
     "cylinder_green",
     "cylinder_yellow",
     "sphere",
     "capsule",
-    "small_cube",
-    "small_cylinder",
-    "large_cube"
+    "small_cube_red",
+    "cylinder_red",
+    "small_cube_blue"
   ],
   "receptacles": [
     "box"
