@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent
 
 DOMAIN = ROOT / "planning" / "domain.pddl"
 
-PLANNER = ROOT / "fast-downward.py"
+PLANNER = ROOT / "planning" / "fast-downward.py"
 
 WORKSPACE = (
     ROOT / "planning" / "generated"
