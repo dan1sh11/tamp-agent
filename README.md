@@ -10,9 +10,9 @@ The system addresses the gap between flexible human language and the determinist
 
 The instruction passes through three major stages:
 
-1. **Natural Language Interface** — Mistral 7B interprets the instruction and converts it into a structured JSON goal specification.
-2. **Hybrid PDDL Planner** — The JSON goal is translated into a PDDL problem and processed by Fast Downward. Symbolic preconditions and geometric feasibility are evaluated before an action sequence is produced.
-3. **PyBullet Simulation** — The resulting action sequence is executed in a physics-based robotic environment, with feasibility checks performed during execution.
+1. **Natural Language Interface** - Mistral 7B interprets the instruction and converts it into a structured JSON goal specification.
+2. **Hybrid PDDL Planner** - The JSON goal is translated into a PDDL problem and processed by Fast Downward. Symbolic preconditions and geometric feasibility are evaluated before an action sequence is produced.
+3. **PyBullet Simulation** - The resulting action sequence is executed in a physics-based robotic environment, with feasibility checks performed during execution.
 
 This architecture intentionally separates **language interpretation**, **symbolic planning**, and **physical execution** rather than relying on the LLM to directly control the robot.
 
@@ -29,7 +29,7 @@ This architecture intentionally separates **language interpretation**, **symboli
 │   Natural Language Interface │
 │          Mistral 7B          │
 │                              │
-│ Natural Language → JSON Goal │
+│ Natural Language -> JSON Goal │
 └──────────────┬───────────────┘
                │
                ▼
@@ -37,7 +37,7 @@ This architecture intentionally separates **language interpretation**, **symboli
 │      PDDL-Based Planner      │
 │        Fast Downward         │
 │                              │
-│ JSON → PDDL → Symbolic Plan  │
+│ JSON -> PDDL -> Symbolic Plan  │
 │ + Geometric Feasibility      │
 └──────────────┬───────────────┘
                │
@@ -53,7 +53,7 @@ This architecture intentionally separates **language interpretation**, **symboli
         Task Success / Failure
 ```
 
-The project therefore forms a pipeline from **natural language → structured representation → symbolic/geometric plan → simulated robot execution**.
+The project therefore forms a pipeline from **natural language -> structured representation -> symbolic/geometric plan -> simulated robot execution**.
 
 ## Components
 
@@ -139,7 +139,7 @@ At runtime, the system is intended to validate the request at multiple levels ra
 
 The proposed evaluation benchmark is divided into three levels:
 
-### Tier 1 — Unambiguous Instructions
+### Tier 1 - Unambiguous Instructions
 
 Simple instructions with low semantic and planning complexity.
 
@@ -151,11 +151,11 @@ Turn left.
 Move the cube to the table.
 ```
 
-### Tier 2 — Moderately Ambiguous Instructions
+### Tier 2 - Moderately Ambiguous Instructions
 
 Instructions requiring limited contextual or common-sense inference.
 
-### Tier 3 — Complex Instructions
+### Tier 3 - Complex Instructions
 
 Highly non-specific or multi-step instructions requiring more extensive reasoning and consideration of implicit constraints.
 
@@ -229,4 +229,3 @@ This project is under active development. The architecture, planner implementati
 ## Author
 
 **Danish Lnu**
-ITSS-440-M01 — Information Technology Capstone
