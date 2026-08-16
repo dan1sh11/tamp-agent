@@ -1,2 +1,4 @@
-# Fast Downward Installation
+# Fast Downward
 planning/fast-downward-*/
+planning/*.tar.gz
+planning/*.tar.gz:Zone.Identifier
