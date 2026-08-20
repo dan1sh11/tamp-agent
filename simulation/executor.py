@@ -21,7 +21,9 @@ class PlanExecutor:
             try:
                 self.execute_one(action)
             except Exception as exc:
-                raise PlanExecutionError(f"Action {index} failed: {action}") from exc
+                raise PlanExecutionError(
+                    f"Action {index} failed: {action} ({exc})"
+                ) from exc
 
     def execute_one(self, action: Action) -> None:
         if action.type == ActionType.MOVE_TO:
@@ -41,6 +43,11 @@ class PlanExecutor:
         return p.getQuaternionFromEuler([0.0, 3.14159265, 0.0])
 
     def move_to(self, object_name: str):
+        # Resolve the symbolic name through the simulator registry. This makes
+        # the planner/simulator contract explicit and produces a useful error
+        # if the symbolic scene names ever diverge.
+        self.env.registry.get(object_name) if object_name != "box" else None
+
         x, y, z = self.env.get_target_position(object_name)
         approach = [x, y, z + self.env.config.approach_height]
         target = [x, y, z + self.env.config.grasp_height_offset]
@@ -54,7 +61,9 @@ class PlanExecutor:
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
         ):
-            raise PlanExecutionError(f"Robot could not reach approach pose for '{object_name}'")
+            raise PlanExecutionError(
+                f"Robot could not reach approach pose for '{object_name}' at {approach}"
+            )
 
         if not self.env.robot.move_ee(
             target,
@@ -62,7 +71,9 @@ class PlanExecutor:
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
         ):
-            raise PlanExecutionError(f"Robot could not reach target pose for '{object_name}'")
+            raise PlanExecutionError(
+                f"Robot could not reach grasp pose for '{object_name}' at {target}"
+            )
 
     def grasp(self, object_name: str):
         if self.held_object is not None:
