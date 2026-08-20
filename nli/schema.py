@@ -1,16 +1,12 @@
 from typing import Literal
+
 from pydantic import BaseModel
 
 
 class Instruction(BaseModel):
-    action: Literal[
-        "pick",
-        "place",
-        "move",
-        "unknown",
-        None
-    ]
+    """Canonical interface between language interpretation and planning."""
 
-    object: str | None
-    target: str | None
-    error: str | None
+    action: Literal["pick", "place", "unknown"]
+    object: str | None = None
+    target: str | None = None
+    error: str | None = None
