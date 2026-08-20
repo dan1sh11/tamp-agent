@@ -11,8 +11,6 @@ OBJECT_ALIASES = {
     "green cylinder": "cylinder_green",
     "yellow cylinder": "cylinder_yellow",
     "red cylinder": "cylinder_red",
-    "sphere": "sphere",
-    "capsule": "capsule",
 }
 
 TARGET_ALIASES = {
@@ -48,20 +46,15 @@ def validate_instruction(instruction: Instruction) -> Instruction:
     instruction.object = _canonicalize(instruction.object, OBJECT_ALIASES)
     instruction.target = _canonicalize(instruction.target, TARGET_ALIASES)
 
-    # PLACE and DROP may intentionally omit the object. The planner resolves
-    # that reference from the robot's current held-object state. This allows
-    # commands such as "place it in the box" after a successful pick.
     if instruction.action in {"place", "drop"}:
         if instruction.target is not None and instruction.action == "drop":
             instruction.action = "unknown"
             instruction.error = "Drop does not accept a target."
             return instruction
-
         if instruction.action == "place" and instruction.target not in SUPPORTED_TARGETS:
             instruction.action = "unknown"
             instruction.error = "Place requires the target box/container."
             return instruction
-
         return instruction
 
     if instruction.object not in SUPPORTED_OBJECTS:
