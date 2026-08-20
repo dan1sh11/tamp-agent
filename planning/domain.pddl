@@ -1,9 +1,5 @@
 (define (domain tamp-agent)
-
-    (:requirements
-        :strips
-        :typing
-    )
+    (:requirements :strips :typing)
 
     (:types
         object
@@ -19,47 +15,41 @@
 
     (:action pick
         :parameters (?o - object)
-        :precondition
-            (and
-                (on-table ?o)
-                (hand-empty)
-            )
-        :effect
-            (and
-                (holding ?o)
-                (not (on-table ?o))
-                (not (hand-empty))
-            )
+        :precondition (and (on-table ?o) (hand-empty))
+        :effect (and
+            (holding ?o)
+            (not (on-table ?o))
+            (not (hand-empty))
+        )
     )
 
     (:action drop
         :parameters (?o - object)
-        :precondition
-            (and
-                (holding ?o)
-            )
-        :effect
-            (and
-                (on-table ?o)
-                (hand-empty)
-                (not (holding ?o))
-            )
+        :precondition (holding ?o)
+        :effect (and
+            (on-table ?o)
+            (hand-empty)
+            (not (holding ?o))
+        )
     )
 
     (:action place
-        :parameters (
-            ?o - object
-            ?r - receptacle
+        :parameters (?o - object ?r - receptacle)
+        :precondition (holding ?o)
+        :effect (and
+            (in ?o ?r)
+            (hand-empty)
+            (not (holding ?o))
         )
-        :precondition
-            (and
-                (holding ?o)
-            )
-        :effect
-            (and
-                (in ?o ?r)
-                (hand-empty)
-                (not (holding ?o))
-            )
+    )
+
+    (:action move
+        :parameters (?o - object ?r - receptacle)
+        :precondition (and (on-table ?o) (hand-empty))
+        :effect (and
+            (in ?o ?r)
+            (hand-empty)
+            (not (on-table ?o))
+        )
     )
 )
