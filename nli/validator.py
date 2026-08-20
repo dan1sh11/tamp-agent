@@ -1,36 +1,71 @@
 from nli.schema import Instruction
 
 
+OBJECT_ALIASES = {
+    "red cube": "large_cube_red",
+    "large red cube": "large_cube_red",
+    "small red cube": "small_cube_red",
+    "blue cube": "large_cube_blue",
+    "large blue cube": "large_cube_blue",
+    "small blue cube": "small_cube_blue",
+    "green cylinder": "cylinder_green",
+    "yellow cylinder": "cylinder_yellow",
+    "red cylinder": "cylinder_red",
+    "sphere": "sphere",
+    "capsule": "capsule",
+}
+
+TARGET_ALIASES = {
+    "box": "box",
+    "container": "box",
+    "the box": "box",
+    "the container": "box",
+}
+
+SUPPORTED_OBJECTS = set(OBJECT_ALIASES.values())
+SUPPORTED_TARGETS = {"box"}
+
+
+def _canonicalize(value: str | None, aliases: dict[str, str]) -> str | None:
+    if value is None:
+        return None
+
+    normalized = " ".join(value.lower().strip().replace("_", " ").split())
+    if normalized in aliases:
+        return aliases[normalized]
+
+    # Accept canonical symbolic names as well.
+    canonical = normalized.replace(" ", "_")
+    if canonical in aliases.values():
+        return canonical
+    return None
+
+
 def validate_instruction(instruction: Instruction) -> Instruction:
-
-    # Model could not understand the instruction
     if instruction.action == "unknown":
-        if not instruction.error:
-            instruction.error = "Unable to determine a valid action."
-
+        instruction.error = instruction.error or "Unable to determine a supported action."
         return instruction
 
-    # Every non-unknown action requires an object
-    if instruction.object is None:
+    instruction.object = _canonicalize(instruction.object, OBJECT_ALIASES)
+    instruction.target = _canonicalize(instruction.target, TARGET_ALIASES)
+
+    if instruction.object not in SUPPORTED_OBJECTS:
         instruction.action = "unknown"
-        instruction.error = "No object was identified."
-
+        instruction.error = "The instruction does not identify a supported scene object."
         return instruction
 
-    # Pick should not have a target
     if instruction.action == "pick":
         if instruction.target is not None:
             instruction.action = "unknown"
-            instruction.error = (
-                "Pick action should not contain a target."
-            )
+            instruction.error = "Pick action should not contain a target."
+        return instruction
 
-    # Place requires a target
     if instruction.action == "place":
-        if instruction.target is None:
+        if instruction.target not in SUPPORTED_TARGETS:
             instruction.action = "unknown"
-            instruction.error = (
-                "Place action requires a target."
-            )
+            instruction.error = "Place requires the target box/container."
+        return instruction
 
+    instruction.action = "unknown"
+    instruction.error = f"Unsupported action: {instruction.action}"
     return instruction
