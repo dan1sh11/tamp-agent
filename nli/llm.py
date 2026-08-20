@@ -17,7 +17,7 @@ Translate the user's instruction into exactly one supported action:
 
 IMPORTANT:
 - The robot maintains state between commands.
-- If the user says "place it", "put it in the box", "place the object", "put it there", or similar language after a pick, leave object as null. The planner will resolve "it" to the object currently held by the robot.
+- If the user says "place it", "put it in the box", "place the object", "put it there", or similar language after a pick, leave object as null. The application resolves "it" to the object currently held by the robot.
 - If the user says "drop it", "drop the object", or "release it", leave object as null.
 - Do not ask the user to repeat the object when the instruction refers to the currently held object.
 - The only supported placement target is the box/container. If the user says "place it in the box" or equivalent, target should be "box".
@@ -29,7 +29,7 @@ Use only information stated by the user and the conversation state represented b
 
 Supported scene objects are:
 large red cube, large blue cube, small red cube, small blue cube,
-red cylinder, green cylinder, yellow cylinder, sphere, capsule.
+red cylinder, green cylinder, yellow cylinder.
 
 Return only the supplied JSON schema.
 """
