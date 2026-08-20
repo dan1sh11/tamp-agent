@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from nli.interface import process_instruction
+from nli.schema import Instruction
 from planning.planner import FastDownwardPlanner, PlannerError
 from simulation.environment import TAMPEnvironment
 from simulation.executor import PlanExecutionError, PlanExecutor
@@ -14,6 +15,17 @@ ROOT = Path(__file__).resolve().parent
 DOMAIN = ROOT / "planning" / "domain.pddl"
 DEFAULT_PLANNER = ROOT / "planning" / "fast-downward.py"
 WORKSPACE = ROOT / "planning" / "generated"
+
+
+def _resolve_instruction_state(instruction: Instruction, held_object: str | None) -> Instruction:
+    """Resolve pronouns/omitted objects against the robot's current state."""
+    if instruction.action in {"place", "drop"} and instruction.object is None:
+        if held_object is None:
+            raise PlannerError(
+                f"Cannot {instruction.action}: the robot is not currently holding an object."
+            )
+        instruction.object = held_object
+    return instruction
 
 
 def main() -> None:
@@ -45,18 +57,15 @@ def main() -> None:
 
             try:
                 instruction = process_instruction(user_input)
+                held_object = executor.held_object
+                instruction = _resolve_instruction_state(instruction, held_object)
+
                 print("\n[NLI]")
                 print(instruction.model_dump_json(indent=2))
 
                 if instruction.action == "unknown":
                     print(f"Rejected: {instruction.error}")
                     continue
-
-                # Planning is stateful: a subsequent command must see whether
-                # the robot is already holding an object. Without this state,
-                # every generated PDDL problem starts with (hand-empty), so a
-                # DROP or PLACE command incorrectly requires another PICK.
-                held_object = executor.held_object
 
                 print("\n[PDDL / PLANNER]")
                 plan_text = planner.plan(instruction, held_object=held_object)
