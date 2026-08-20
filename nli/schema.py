@@ -1,37 +1,32 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 Action = Literal["pick", "place", "drop", "move", "unknown"]
 
 
 class Instruction(BaseModel):
-    """Structured semantic interpretation consumed by grounding/planning."""
+    """Semantic NLI result passed to deterministic grounding/planning."""
 
     model_config = ConfigDict(extra="ignore")
 
-    action: Action
-    object: str | None = None
-    target: str | None = None
-    error: str | None = None
-
-    @model_validator(mode="after")
-    def validate_semantics(self) -> "Instruction":
-        if self.action == "unknown":
-            return self
-        if self.action == "pick":
-            if self.object is None:
-                raise ValueError("pick requires an object")
-            if self.target is not None:
-                raise ValueError("pick cannot have a target")
-        elif self.action == "place":
-            if self.target is None:
-                raise ValueError("place requires a target")
-        elif self.action == "drop":
-            if self.target is not None:
-                raise ValueError("drop cannot have a target; use place instead")
-        elif self.action == "move":
-            if self.target is None:
-                raise ValueError("move requires a target")
-        return self
+    action: Action = Field(
+        description=(
+            "Semantic action. pick=acquire an object; place=directly put an object "
+            "at a target; drop=untargeted release; move=explicit compound/transfer "
+            "request; unknown=unsupported or unresolved request."
+        )
+    )
+    object: str | None = Field(
+        default=None,
+        description="Object referred to by the user, or null when unresolved/contextual.",
+    )
+    target: str | None = Field(
+        default=None,
+        description="Destination/receptacle referred to by the user, or null when none is stated.",
+    )
+    error: str | None = Field(
+        default=None,
+        description="Optional interpretation error; normally null for valid requests.",
+    )
