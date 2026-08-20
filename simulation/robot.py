@@ -23,14 +23,25 @@ class PandaRobot:
             0.0, -0.4, 0.0, -2.2, 0.0, 1.8, 0.8
         ]
 
-        # Panda's seven revolute arm limits. Supplying these to IK prevents
-        # unconstrained solutions that can put the arm into the tabletop.
-        self.lower_limits = [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
-        self.upper_limits = [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
-        self.joint_ranges = [
-            upper - lower for lower, upper in zip(self.lower_limits, self.upper_limits)
+        # The Panda URDF has 9 movable degrees of freedom: 7 arm joints and
+        # 2 finger joints. PyBullet's IK damping/limit arrays must match that
+        # DOF count, not just the seven arm joints that we control directly.
+        self.ik_lower_limits = [
+            -2.8973, -1.7628, -2.8973, -3.0718,
+            -2.8973, -0.0175, -2.8973,
+            0.0, 0.0,
         ]
-        self.joint_damping = [0.1] * 7
+        self.ik_upper_limits = [
+            2.8973, 1.7628, 2.8973, -0.0698,
+            2.8973, 3.7525, 2.8973,
+            0.04, 0.04,
+        ]
+        self.ik_joint_ranges = [
+            upper - lower
+            for lower, upper in zip(self.ik_lower_limits, self.ik_upper_limits)
+        ]
+        self.ik_rest_poses = self.home_joint_positions + [0.04, 0.04]
+        self.ik_joint_damping = [0.1] * 9
 
         self.set_joint_positions(self.home_joint_positions)
 
@@ -68,11 +79,11 @@ class PandaRobot:
                 self.ee_link,
                 target_position,
                 targetOrientation=target_orientation,
-                lowerLimits=self.lower_limits,
-                upperLimits=self.upper_limits,
-                jointRanges=self.joint_ranges,
-                restPoses=self.home_joint_positions,
-                jointDamping=self.joint_damping,
+                lowerLimits=self.ik_lower_limits,
+                upperLimits=self.ik_upper_limits,
+                jointRanges=self.ik_joint_ranges,
+                restPoses=self.ik_rest_poses,
+                jointDamping=self.ik_joint_damping,
                 maxNumIterations=200,
                 residualThreshold=1e-5,
             )
