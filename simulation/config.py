@@ -7,9 +7,9 @@ class SimulationConfig:
     table_top_z: float = 0.72
     panda_base_xy: tuple[float, float] = (-0.65, 0.0)
 
-    # Center the receptacle on the work surface so the Panda approaches it
-    # from the front/center rather than reaching to the far side of the table.
-    box_center: tuple[float, float] = (0.0, 0.12)
+    # The receptacle is centered on the table and on the Panda's approach axis.
+    # Its long axis is transverse to the robot's forward (+X) direction.
+    box_center: tuple[float, float] = (0.0, 0.0)
     box_size: tuple[float, float, float] = (0.34, 0.28, 0.20)
 
     simulation_hz: int = 240
