@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from nli.interface import process_instruction
-from nli_cases import CASES
+from tests.nli_cases import CASES
 
 RESULTS = Path(__file__).with_name("nli_results.json")
 

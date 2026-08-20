@@ -1,9 +1,323 @@
 {
   "model": "mistral:7b",
-  "status": "not_run_in_github_environment",
+  "temperature": 0,
   "case_count": 20,
-  "passed": null,
-  "failed": null,
-  "accuracy": null,
-  "note": "Run python tests/run_nli_benchmark.py on the machine hosting the local Ollama mistral:7b model. This file is intentionally not populated with fabricated model results."
+  "passed": 7,
+  "failed": 13,
+  "accuracy": 0.35,
+  "note": "Results are generated from the local Ollama model; run this script on the machine hosting mistral:7b.",
+  "cases": [
+    {
+      "id": "pick_01",
+      "input": "Pick up the large red cube.",
+      "expected": {
+        "action": "pick",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_02",
+      "input": "Grab the little blue cube.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "little blue cube",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "pick_03",
+      "input": "Take the green cylinder.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_04",
+      "input": "Get the yellow cylinder off the table.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_yellow",
+        "target": null
+      },
+      "actual": null,
+      "model_error": "ValidationError: 1 validation error for Instruction\n  Value error, drop cannot have a target; use place instead [type=value_error, input_value={'action': 'drop', 'objec...r', 'target': 'unknown'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "pass": false
+    },
+    {
+      "id": "place_01",
+      "input": "Put the red cylinder in the box.",
+      "expected": {
+        "action": "place",
+        "object": "cylinder_red",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "cylinder_red",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "place_02",
+      "input": "Drop the sphere into the container.",
+      "expected": {
+        "action": "place",
+        "object": "sphere",
+        "target": "container"
+      },
+      "actual": null,
+      "model_error": "ValidationError: 1 validation error for Instruction\n  Value error, drop cannot have a target; use place instead [type=value_error, input_value={'action': 'drop', 'objec..., 'target': 'container'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+      "pass": false
+    },
+    {
+      "id": "place_03",
+      "input": "Set the big blue block inside the bin.",
+      "expected": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "bin"
+      },
+      "actual": {
+        "action": "place",
+        "object": "big blue block",
+        "target": "bin"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "place_04",
+      "input": "Move the capsule into the box.",
+      "expected": {
+        "action": "place",
+        "object": "capsule",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "capsule",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "typo_01",
+      "input": "Grab the greeen cylinder.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "desc_01",
+      "input": "Take the tiny red block.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "tiny red block",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "desc_02",
+      "input": "Put the large blue block in the box.",
+      "expected": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "large blue block",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_01",
+      "input": "Pick up the red cube.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_02",
+      "input": "Put the blue cube in the box.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_03",
+      "input": "Grab that one.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "that one",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_04",
+      "input": "Put it in the box.",
+      "expected": {
+        "action": "place",
+        "object": null,
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": null,
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "compound_01",
+      "input": "Pick up the green cylinder and put it in the box.",
+      "expected": {
+        "action": "move",
+        "object": "cylinder_green",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "cylinder_green",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "compound_02",
+      "input": "Take the sphere to the container.",
+      "expected": {
+        "action": "move",
+        "object": "sphere",
+        "target": "container"
+      },
+      "actual": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "drop_01",
+      "input": "Drop it.",
+      "expected": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "unsupported_01",
+      "input": "Rotate the cube ninety degrees.",
+      "expected": {
+        "action": "unknown",
+        "object": "cube",
+        "target": null
+      },
+      "actual": {
+        "action": "unknown",
+        "object": "cube",
+        "target": null
+      },
+      "model_error": "The action 'rotate' does not fit into the provided action semantics of pick, place, drop, move.",
+      "pass": true
+    },
+    {
+      "id": "unsupported_02",
+      "input": "Move the robot arm to the left side of the table.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": "left side of the table"
+      },
+      "actual": {
+        "action": "move",
+        "object": null,
+        "target": "left side of the table"
+      },
+      "model_error": null,
+      "pass": false
+    }
+  ]
 }
