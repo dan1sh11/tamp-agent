@@ -9,8 +9,8 @@ class PlanExecutionError(RuntimeError):
 
 
 class PlanExecutor:
-    # The only layer that translates normalized symbolic actions into
-    # physical manipulation procedures.
+    """Translate normalized symbolic planner actions into robot procedures."""
+
     def __init__(self, env: TAMPEnvironment):
         self.env = env
         self.held_object: str | None = None
@@ -21,9 +21,7 @@ class PlanExecutor:
             try:
                 self.execute_one(action)
             except Exception as exc:
-                raise PlanExecutionError(
-                    f"Action {index} failed: {action}"
-                ) from exc
+                raise PlanExecutionError(f"Action {index} failed: {action}") from exc
 
     def execute_one(self, action: Action) -> None:
         if action.type == ActionType.MOVE_TO:
@@ -44,11 +42,11 @@ class PlanExecutor:
 
     def move_to(self, object_name: str):
         x, y, z = self.env.get_target_position(object_name)
-
         approach = [x, y, z + self.env.config.approach_height]
         target = [x, y, z + self.env.config.grasp_height_offset]
 
-        self.env.robot.open_gripper()
+        if self.held_object is None:
+            self.env.robot.open_gripper()
 
         if not self.env.robot.move_ee(
             approach,
@@ -56,9 +54,7 @@ class PlanExecutor:
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
         ):
-            raise PlanExecutionError(
-                f"Robot could not reach approach pose for '{object_name}'"
-            )
+            raise PlanExecutionError(f"Robot could not reach approach pose for '{object_name}'")
 
         if not self.env.robot.move_ee(
             target,
@@ -66,23 +62,16 @@ class PlanExecutor:
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
         ):
-            raise PlanExecutionError(
-                f"Robot could not reach grasp pose for '{object_name}'"
-            )
+            raise PlanExecutionError(f"Robot could not reach target pose for '{object_name}'")
 
     def grasp(self, object_name: str):
         if self.held_object is not None:
-            raise PlanExecutionError(
-                f"Robot already holds '{self.held_object}'"
-            )
+            raise PlanExecutionError(f"Robot already holds '{self.held_object}'")
 
         obj = self.env.registry.get(object_name)
-
         self.env.robot.close_gripper()
         self.env.robot.step(self.env.config.grasp_settle_steps)
 
-        # Prototype grasp model: attach the object to the end effector.
-        # Later this can be replaced with contact/force-based grasp validation.
         self.grasp_constraint = p.createConstraint(
             self.env.robot.body_id,
             self.env.robot.ee_link,
@@ -93,7 +82,6 @@ class PlanExecutor:
             [0, 0, 0],
             [0, 0, 0],
         )
-
         self.held_object = object_name
 
     def release(self):
@@ -109,12 +97,13 @@ class PlanExecutor:
         self.held_object = None
 
     def home(self):
-        self.env.robot.move_ee(
+        if not self.env.robot.move_ee(
             self.env.config.home_position,
             self._grasp_orientation(),
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
-        )
+        ):
+            raise PlanExecutionError("Robot could not return to home pose")
 
     def wait(self, steps: int):
         self.env.robot.step(max(0, int(steps)))
