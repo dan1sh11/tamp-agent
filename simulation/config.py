@@ -6,10 +6,11 @@ class SimulationConfig:
     table_size: tuple[float, float, float] = (1.6, 1.1, 0.12)
     table_top_z: float = 0.72
 
-    # The Panda is mounted at the table surface. Keep the mounting position
-    # independent of any particular object so every scene object uses the same
-    # robot/world coordinate frame.
-    panda_base_xy: tuple[float, float] = (-0.48, 0.0)
+    # Mount the Panda near the left edge of the work surface rather than near
+    # the center. This gives the arm usable reach to the entire tabletop,
+    # including objects close to the left side, without introducing object-
+    # specific target corrections.
+    panda_base_xy: tuple[float, float] = (-0.65, 0.0)
 
     box_center: tuple[float, float] = (0.48, 0.20)
     box_size: tuple[float, float, float] = (0.46, 0.38, 0.20)
