@@ -30,16 +30,13 @@ def parse_fast_downward_plan(plan_text: str) -> list[Action]:
         elif action_name == "drop" and len(arguments) == 1:
             actions.append(Action.release())
         elif action_name == "place" and len(arguments) == 2:
-            _, target = arguments
-            actions.extend([Action.move_to(target), Action.release()])
+            obj, target = arguments
+            actions.append(Action.place(obj, target))
         elif action_name == "move" and len(arguments) == 2:
             obj, target = arguments
-            actions.extend([
-                Action.move_to(obj),
-                Action.grasp(obj),
-                Action.move_to(target),
-                Action.release(),
-            ])
+            actions.append(Action.move_to(obj))
+            actions.append(Action.grasp(obj))
+            actions.append(Action.place(obj, target))
         else:
             raise FastDownwardPlanError(f"Unsupported or malformed planner action: {line}")
 
