@@ -11,33 +11,19 @@
     )
 
     (:predicates
-
-        ; Object is currently on the table.
         (on-table ?o - object)
-
-        ; Robot is holding object.
         (holding ?o - object)
-
-        ; Robot hand is empty.
         (hand-empty)
-
-        ; Object is inside a receptacle.
         (in ?o - object ?r - receptacle)
     )
 
-    ; ----
-    ; PICK
-    ; ----
-
     (:action pick
         :parameters (?o - object)
-
         :precondition
             (and
                 (on-table ?o)
                 (hand-empty)
             )
-
         :effect
             (and
                 (holding ?o)
@@ -46,21 +32,29 @@
             )
     )
 
-    ; -----
-    ; PLACE
-    ; -----
+    (:action drop
+        :parameters (?o - object)
+        :precondition
+            (and
+                (holding ?o)
+            )
+        :effect
+            (and
+                (on-table ?o)
+                (hand-empty)
+                (not (holding ?o))
+            )
+    )
 
     (:action place
         :parameters (
             ?o - object
             ?r - receptacle
         )
-
         :precondition
             (and
                 (holding ?o)
             )
-
         :effect
             (and
                 (in ?o ?r)
