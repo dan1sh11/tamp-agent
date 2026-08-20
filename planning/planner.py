@@ -12,12 +12,7 @@ class PlannerError(RuntimeError):
 
 
 class FastDownwardPlanner:
-    def __init__(
-        self,
-        fast_downward_path: str | Path | None,
-        domain_path: str | Path,
-        working_directory: str | Path,
-    ):
+    def __init__(self, fast_downward_path, domain_path, working_directory):
         self.fast_downward_path = self._resolve_planner(fast_downward_path)
         self.domain_path = Path(domain_path).resolve()
         self.working_directory = Path(working_directory).resolve()
@@ -25,69 +20,42 @@ class FastDownwardPlanner:
         self.generator = PDDLGenerator(self.domain_path)
 
     @staticmethod
-    def _resolve_planner(path: str | Path | None) -> Path | None:
+    def _resolve_planner(path):
         candidates = []
         if path:
             candidates.append(Path(path))
         env_path = os.getenv("FAST_DOWNWARD_PATH")
         if env_path:
             candidates.append(Path(env_path))
-
         discovered = shutil.which("fast-downward.py")
         if discovered:
             candidates.append(Path(discovered))
-
         for candidate in candidates:
             if candidate.exists():
                 return candidate.resolve()
         return None
 
     @property
-    def using_fast_downward(self) -> bool:
+    def using_fast_downward(self):
         return self.fast_downward_path is not None
 
-    def plan(self, instruction: Instruction) -> str:
+    def plan(self, instruction):
         problem_path = self.working_directory / "problem.pddl"
-        problem_path.write_text(
-            self.generator.generate_problem(instruction),
-            encoding="utf-8",
-        )
-
+        problem_path.write_text(self.generator.generate_problem(instruction), encoding="utf-8")
         if self.fast_downward_path is None:
             return self._deterministic_fallback(instruction)
-
-        command = [
-            str(self.fast_downward_path),
-            str(self.domain_path),
-            str(problem_path),
-            "--search",
-            "astar(lmcut())",
-        ]
-
-        result = subprocess.run(
-            command,
-            cwd=self.fast_downward_path.parent,
-            capture_output=True,
-            text=True,
-        )
-
+        command = [str(self.fast_downward_path), str(self.domain_path), str(problem_path), "--search", "astar(lmcut())"]
+        result = subprocess.run(command, cwd=self.fast_downward_path.parent, capture_output=True, text=True)
         if result.returncode != 0:
-            raise PlannerError(
-                "Fast Downward failed.\n\n"
-                f"STDOUT:\n{result.stdout}\n\n"
-                f"STDERR:\n{result.stderr}"
-            )
-
+            raise PlannerError(f"Fast Downward failed.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}")
         return result.stdout
 
     @staticmethod
-    def _deterministic_fallback(instruction: Instruction) -> str:
-        """Keep the CLI runnable when Fast Downward is not installed."""
+    def _deterministic_fallback(instruction):
         if instruction.action == "pick":
             return f"(pick {instruction.object})\n"
+        if instruction.action == "drop":
+            return f"(pick {instruction.object})\n(drop {instruction.object})\n"
         if instruction.action == "place":
-            return (
-                f"(pick {instruction.object})\n"
-                f"(place {instruction.object} {instruction.target})\n"
-            )
+            return f"(pick {instruction.object})\n(place {instruction.object} {instruction.target})\n"
         raise PlannerError(instruction.error or "Unsupported action")
