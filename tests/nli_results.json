@@ -1,9 +1,9 @@
 {
   "model": "mistral:7b",
   "status": "not_run_in_github_environment",
-  "case_count": 20,
+  "case_count": 30,
   "passed": null,
   "failed": null,
   "accuracy": null,
-  "note": "Run python tests/run_nli_benchmark.py on the machine hosting the local Ollama mistral:7b model. This file is intentionally not populated with fabricated model results."
+  "note": "Run python tests/run_nli_benchmark.py on the machine hosting the local Ollama mistral:7b model. Expected values are the canonical outputs after NLI grounding. This file intentionally contains no fabricated model results."
 }
