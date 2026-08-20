@@ -25,6 +25,8 @@ class PDDLGenerator:
             raise PDDLGenerationError(f"Unknown object: {instruction.object}")
         if instruction.action == "place" and instruction.target not in RECEPTACLES:
             raise PDDLGenerationError(f"Unknown target: {instruction.target}")
+        if instruction.action == "drop" and instruction.target is not None:
+            raise PDDLGenerationError("Drop does not accept a target.")
 
         objects = "\n".join(f"        {name} - object" for name in SCENE_OBJECTS)
         receptacles = "\n".join(f"        {name} - receptacle" for name in RECEPTACLES)
@@ -51,6 +53,8 @@ class PDDLGenerator:
         obj = instruction.object
         if instruction.action == "pick":
             return f"(holding {obj})"
+        if instruction.action == "drop":
+            return f"(and (on-table {obj}) (hand-empty))"
         if instruction.action == "place":
             return f"(in {obj} {instruction.target})"
         raise PDDLGenerationError(f"Unsupported action: {instruction.action}")
