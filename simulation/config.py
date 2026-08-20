@@ -5,15 +5,12 @@ from dataclasses import dataclass
 class SimulationConfig:
     table_size: tuple[float, float, float] = (1.6, 1.1, 0.12)
     table_top_z: float = 0.72
-
-    # Fixed robot mounting point for the workcell. Object placement remains
-    # independent of the robot and is defined in environment.py.
     panda_base_xy: tuple[float, float] = (-0.65, 0.0)
 
-    # Keep the receptacle near the center of the reachable workspace rather
-    # than at the far-right edge of the table.
-    box_center: tuple[float, float] = (0.25, 0.18)
-    box_size: tuple[float, float, float] = (0.36, 0.30, 0.20)
+    # Center the receptacle on the work surface so the Panda approaches it
+    # from the front/center rather than reaching to the far side of the table.
+    box_center: tuple[float, float] = (0.0, 0.12)
+    box_size: tuple[float, float, float] = (0.34, 0.28, 0.20)
 
     simulation_hz: int = 240
     gravity: float = -9.81
@@ -21,7 +18,7 @@ class SimulationConfig:
 
     approach_height: float = 0.20
     grasp_height_offset: float = 0.055
-    home_position: tuple[float, float, float] = (0.10, 0.0, 1.05)
+    home_position: tuple[float, float, float] = (0.05, 0.0, 1.05)
 
     position_tolerance: float = 0.015
     max_motion_steps: int = 1200
