@@ -48,23 +48,33 @@ def validate_instruction(instruction: Instruction) -> Instruction:
     instruction.object = _canonicalize(instruction.object, OBJECT_ALIASES)
     instruction.target = _canonicalize(instruction.target, TARGET_ALIASES)
 
+    # PLACE and DROP may intentionally omit the object. The planner resolves
+    # that reference from the robot's current held-object state. This allows
+    # commands such as "place it in the box" after a successful pick.
+    if instruction.action in {"place", "drop"}:
+        if instruction.target is not None and instruction.action == "drop":
+            instruction.action = "unknown"
+            instruction.error = "Drop does not accept a target."
+            return instruction
+
+        if instruction.action == "place" and instruction.target not in SUPPORTED_TARGETS:
+            instruction.action = "unknown"
+            instruction.error = "Place requires the target box/container."
+            return instruction
+
+        return instruction
+
     if instruction.object not in SUPPORTED_OBJECTS:
         instruction.action = "unknown"
         instruction.error = "The instruction does not identify a supported scene object."
         return instruction
 
-    if instruction.action in {"pick", "drop"}:
+    if instruction.action == "pick":
         if instruction.target is not None:
             instruction.action = "unknown"
-            instruction.error = f"{instruction.action} action should not contain a target."
-        return instruction
-
-    if instruction.action == "place":
-        if instruction.target not in SUPPORTED_TARGETS:
-            instruction.action = "unknown"
-            instruction.error = "Place requires the target box/container."
+            instruction.error = "Pick should not contain a target."
         return instruction
 
     instruction.action = "unknown"
-    instruction.error = f"Unsupported action: {instruction.action}"
+    instruction.error = "Unsupported action."
     return instruction
