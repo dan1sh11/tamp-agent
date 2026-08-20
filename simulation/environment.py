@@ -26,7 +26,12 @@ class TAMPEnvironment:
         if self.gui:
             p.configureDebugVisualizer(p.COV_ENABLE_SHADOWS, 1)
             p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
-            p.configureDebugVisualizer(rgbBackground=[0.06, 0.08, 0.11])
+            p.resetDebugVisualizerCamera(
+                cameraDistance=2.0,
+                cameraYaw=48,
+                cameraPitch=-35,
+                cameraTargetPosition=[-0.05, 0.05, 0.72],
+            )
 
         self.registry = ObjectRegistry()
         self.container_ids = []
@@ -42,14 +47,6 @@ class TAMPEnvironment:
         )
         self.robot = PandaRobot(self.config.panda_base)
         self._spawn_objects()
-        self._add_scene_labels()
-        if self.gui:
-            p.resetDebugVisualizerCamera(
-                cameraDistance=2.25,
-                cameraYaw=48,
-                cameraPitch=-35,
-                cameraTargetPosition=[0.03, 0.05, 0.72],
-            )
 
     def _create_table(self):
         sx, sy, sz = self.config.table_size
@@ -80,30 +77,20 @@ class TAMPEnvironment:
                     basePosition=[x, y, 0.34],
                 )
 
-        mat_visual = p.createVisualShape(
-            p.GEOM_BOX,
-            halfExtents=[sx * 0.44, sy * 0.42, 0.002],
-            rgbaColor=(0.10, 0.13, 0.16, 1),
-        )
-        p.createMultiBody(
-            baseMass=0,
-            baseCollisionShapeIndex=-1,
-            baseVisualShapeIndex=mat_visual,
-            basePosition=[0, 0, self.config.table_top_z + 0.002],
-        )
-
     def _spawn_objects(self):
         z = self.config.table_top_z + 0.045
+        # All objects stay on the tabletop but are clustered within the
+        # robot's central workspace. Their symbolic names remain unchanged.
         specs = [
-            ("small_cube_red", "cube", (-0.18, -0.30), (0.030, 0.030, 0.030), (0.85, 0.10, 0.10, 1)),
-            ("large_cube_red", "cube", (0.05, -0.30), (0.065, 0.065, 0.065), (0.95, 0.18, 0.12, 1)),
-            ("cylinder_red", "cylinder", (0.28, -0.30), None, (0.85, 0.10, 0.10, 1)),
-            ("cylinder_green", "cylinder", (-0.28, 0.05), None, (0.10, 0.75, 0.25, 1)),
-            ("sphere", "sphere", (-0.05, 0.08), None, (0.95, 0.65, 0.10, 1)),
-            ("capsule", "capsule", (0.20, 0.06), None, (0.55, 0.20, 0.90, 1)),
-            ("small_cube_blue", "cube", (-0.38, 0.32), (0.030, 0.030, 0.030), (0.10, 0.30, 0.95, 1)),
-            ("cylinder_yellow", "cylinder", (-0.12, 0.33), None, (0.95, 0.75, 0.10, 1)),
-            ("large_cube_blue", "cube", (0.40, -0.02), (0.065, 0.065, 0.065), (0.10, 0.30, 0.95, 1)),
+            ("small_cube_red", "cube", (-0.35, -0.22), (0.030, 0.030, 0.030), (0.85, 0.10, 0.10, 1)),
+            ("large_cube_red", "cube", (-0.15, -0.22), (0.065, 0.065, 0.065), (0.95, 0.18, 0.12, 1)),
+            ("cylinder_red", "cylinder", (0.05, -0.22), None, (0.85, 0.10, 0.10, 1)),
+            ("cylinder_green", "cylinder", (-0.35, 0.02), None, (0.10, 0.75, 0.25, 1)),
+            ("sphere", "sphere", (-0.12, 0.02), None, (0.95, 0.65, 0.10, 1)),
+            ("capsule", "capsule", (0.12, 0.02), None, (0.55, 0.20, 0.90, 1)),
+            ("small_cube_blue", "cube", (-0.30, 0.25), (0.030, 0.030, 0.030), (0.10, 0.30, 0.95, 1)),
+            ("cylinder_yellow", "cylinder", (-0.05, 0.25), None, (0.95, 0.75, 0.10, 1)),
+            ("large_cube_blue", "cube", (0.20, 0.25), (0.065, 0.065, 0.065), (0.10, 0.30, 0.95, 1)),
         ]
         for name, kind, (x, y), dimensions, rgba in specs:
             if kind == "cube":
@@ -117,12 +104,9 @@ class TAMPEnvironment:
             else:
                 raise ValueError(f"Unknown object kind: {kind}")
             self.registry.add(obj)
+
         for _ in range(240):
             p.stepSimulation()
-
-    def _add_scene_labels(self):
-        if not self.gui:
-            return
 
     def get_object_pose(self, name):
         obj = self.registry.get(name)
