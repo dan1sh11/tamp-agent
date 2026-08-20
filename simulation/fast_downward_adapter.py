@@ -16,6 +16,7 @@ def parse_fast_downward_plan(plan_text: str) -> list[Action]:
         line = raw_line.strip()
         if not line or line.startswith(";"):
             continue
+
         match = ACTION_PATTERN.match(line)
         if not match:
             continue
@@ -29,10 +30,19 @@ def parse_fast_downward_plan(plan_text: str) -> list[Action]:
         elif action_name == "drop" and len(arguments) == 1:
             actions.append(Action.release())
         elif action_name == "place" and len(arguments) == 2:
-            obj, target = arguments
+            _, target = arguments
             actions.extend([Action.move_to(target), Action.release()])
+        elif action_name == "move" and len(arguments) == 2:
+            obj, target = arguments
+            actions.extend([
+                Action.move_to(obj),
+                Action.grasp(obj),
+                Action.move_to(target),
+                Action.release(),
+            ])
         else:
             raise FastDownwardPlanError(f"Unsupported or malformed planner action: {line}")
+
     if not actions:
         raise FastDownwardPlanError("Fast Downward returned no executable actions.")
     return actions
