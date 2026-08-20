@@ -42,38 +42,36 @@ class PlanExecutor:
     def _grasp_orientation(self):
         return p.getQuaternionFromEuler([0.0, 3.14159265, 0.0])
 
+    def _move_checked(self, position, label: str):
+        if not self.env.robot.move_ee(
+            position,
+            self._grasp_orientation(),
+            self.env.config.max_motion_steps,
+            self.env.config.position_tolerance,
+        ):
+            raise PlanExecutionError(f"Robot could not reach {label} at {position}")
+
     def move_to(self, object_name: str):
-        # Resolve the symbolic name through the simulator registry. This makes
-        # the planner/simulator contract explicit and produces a useful error
-        # if the symbolic scene names ever diverge.
-        self.env.registry.get(object_name) if object_name != "box" else None
+        # Resolve the symbolic name through the simulator registry so that the
+        # planner/simulator scene contract fails explicitly if names diverge.
+        if object_name != "box":
+            self.env.registry.get(object_name)
 
         x, y, z = self.env.get_target_position(object_name)
-        approach = [x, y, z + self.env.config.approach_height]
-        target = [x, y, z + self.env.config.grasp_height_offset]
+        approach_z = z + self.env.config.approach_height
+        target_z = z + self.env.config.grasp_height_offset
 
         if self.held_object is None:
             self.env.robot.open_gripper()
 
-        if not self.env.robot.move_ee(
-            approach,
-            self._grasp_orientation(),
-            self.env.config.max_motion_steps,
-            self.env.config.position_tolerance,
-        ):
-            raise PlanExecutionError(
-                f"Robot could not reach approach pose for '{object_name}' at {approach}"
-            )
-
-        if not self.env.robot.move_ee(
-            target,
-            self._grasp_orientation(),
-            self.env.config.max_motion_steps,
-            self.env.config.position_tolerance,
-        ):
-            raise PlanExecutionError(
-                f"Robot could not reach grasp pose for '{object_name}' at {target}"
-            )
+        # Do not drive the arm directly from its current joint configuration to
+        # a tabletop target. A joint-space IK transition can sweep through the
+        # table even when the final pose is valid. Move above the workspace,
+        # translate in XY, then descend vertically.
+        safe_z = max(approach_z, self.env.config.home_position[2])
+        self._move_checked([x, y, safe_z], f"safe transit pose for '{object_name}'")
+        self._move_checked([x, y, approach_z], f"approach pose for '{object_name}'")
+        self._move_checked([x, y, target_z], f"grasp pose for '{object_name}'")
 
     def grasp(self, object_name: str):
         if self.held_object is not None:
@@ -108,13 +106,7 @@ class PlanExecutor:
         self.held_object = None
 
     def home(self):
-        if not self.env.robot.move_ee(
-            self.env.config.home_position,
-            self._grasp_orientation(),
-            self.env.config.max_motion_steps,
-            self.env.config.position_tolerance,
-        ):
-            raise PlanExecutionError("Robot could not return to home pose")
+        self._move_checked(self.env.config.home_position, "home pose")
 
     def wait(self, steps: int):
         self.env.robot.step(max(0, int(steps)))
