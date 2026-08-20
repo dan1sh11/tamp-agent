@@ -24,7 +24,11 @@ def main() -> None:
     print("Language -> PDDL -> Plan -> PyBullet")
     print(
         "Planner: "
-        + (f"Fast Downward ({planner.fast_downward_path})" if planner.using_fast_downward else "deterministic local fallback")
+        + (
+            f"Fast Downward ({planner.fast_downward_path})"
+            if planner.using_fast_downward
+            else "deterministic local fallback"
+        )
     )
     print("Type 'quit' or press Ctrl+C to exit.")
 
@@ -48,8 +52,14 @@ def main() -> None:
                     print(f"Rejected: {instruction.error}")
                     continue
 
+                # Planning is stateful: a subsequent command must see whether
+                # the robot is already holding an object. Without this state,
+                # every generated PDDL problem starts with (hand-empty), so a
+                # DROP or PLACE command incorrectly requires another PICK.
+                held_object = executor.held_object
+
                 print("\n[PDDL / PLANNER]")
-                plan_text = planner.plan(instruction)
+                plan_text = planner.plan(instruction, held_object=held_object)
                 actions = parse_fast_downward_plan(plan_text)
                 print(plan_text.strip())
 
