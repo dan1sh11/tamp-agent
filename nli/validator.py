@@ -34,7 +34,6 @@ def _canonicalize(value: str | None, aliases: dict[str, str]) -> str | None:
     if normalized in aliases:
         return aliases[normalized]
 
-    # Accept canonical symbolic names as well.
     canonical = normalized.replace(" ", "_")
     if canonical in aliases.values():
         return canonical
@@ -54,10 +53,10 @@ def validate_instruction(instruction: Instruction) -> Instruction:
         instruction.error = "The instruction does not identify a supported scene object."
         return instruction
 
-    if instruction.action == "pick":
+    if instruction.action in {"pick", "drop"}:
         if instruction.target is not None:
             instruction.action = "unknown"
-            instruction.error = "Pick action should not contain a target."
+            instruction.error = f"{instruction.action} action should not contain a target."
         return instruction
 
     if instruction.action == "place":
