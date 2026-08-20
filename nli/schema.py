@@ -1,13 +1,19 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict
 
 
 Action = Literal["pick", "place", "drop", "move", "unknown"]
 
 
 class Instruction(BaseModel):
-    """Structured semantic interpretation consumed by grounding/planning."""
+    """Semantic NLI result passed to deterministic grounding/planning.
+
+    The schema deliberately validates only the output *shape*. Semantic
+    interpretation and grounding are performed by the NLI prompt and the
+    deterministic validator respectively. In particular, this model must not
+    reject a model output before the validator has a chance to normalize it.
+    """
 
     model_config = ConfigDict(extra="ignore")
 
@@ -15,23 +21,3 @@ class Instruction(BaseModel):
     object: str | None = None
     target: str | None = None
     error: str | None = None
-
-    @model_validator(mode="after")
-    def validate_semantics(self) -> "Instruction":
-        if self.action == "unknown":
-            return self
-        if self.action == "pick":
-            if self.object is None:
-                raise ValueError("pick requires an object")
-            if self.target is not None:
-                raise ValueError("pick cannot have a target")
-        elif self.action == "place":
-            if self.target is None:
-                raise ValueError("place requires a target")
-        elif self.action == "drop":
-            if self.target is not None:
-                raise ValueError("drop cannot have a target; use place instead")
-        elif self.action == "move":
-            if self.target is None:
-                raise ValueError("move requires a target")
-        return self
