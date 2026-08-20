@@ -5,7 +5,7 @@ from nli.schema import Instruction
 
 SCENE_OBJECTS = [
     "large_cube_red", "large_cube_blue", "cylinder_green", "cylinder_yellow",
-    "sphere", "capsule", "small_cube_red", "cylinder_red", "small_cube_blue",
+    "small_cube_red", "cylinder_red", "small_cube_blue",
 ]
 RECEPTACLES = ["box"]
 
@@ -18,11 +18,7 @@ class PDDLGenerator:
     def __init__(self, domain_path: str | Path):
         self.domain_path = Path(domain_path)
 
-    def generate_problem(
-        self,
-        instruction: Instruction,
-        held_object: str | None = None,
-    ) -> str:
+    def generate_problem(self, instruction: Instruction, held_object: str | None = None) -> str:
         if instruction.action == "unknown":
             raise PDDLGenerationError(instruction.error or "Unknown instruction.")
         if instruction.object not in SCENE_OBJECTS:
@@ -35,10 +31,6 @@ class PDDLGenerator:
         if instruction.action == "drop" and instruction.target is not None:
             raise PDDLGenerationError("Drop does not accept a target.")
 
-        # The PDDL problem must represent the simulator's current state.
-        # Otherwise every command starts from an artificial empty-hand state,
-        # causing a second pick to be planned for a drop/place command issued
-        # after a previous pick.
         if instruction.action in {"drop", "place"}:
             if held_object is None:
                 raise PDDLGenerationError(
@@ -56,17 +48,18 @@ class PDDLGenerator:
         objects = "\n".join(f"        {name} - object" for name in SCENE_OBJECTS)
         receptacles = "\n".join(f"        {name} - receptacle" for name in RECEPTACLES)
 
-        initial_state_lines = []
-        for name in SCENE_OBJECTS:
-            if name != held_object:
-                initial_state_lines.append(f"        (on-table {name})")
+        initial_state_lines = [
+            f"        (on-table {name})"
+            for name in SCENE_OBJECTS
+            if name != held_object
+        ]
         if held_object is not None:
             initial_state_lines.append(f"        (holding {held_object})")
         else:
             initial_state_lines.append("        (hand-empty)")
 
-        initial_state = "\n".join(initial_state_lines)
         goal = self._generate_goal(instruction)
+        initial_state = "\n".join(initial_state_lines)
 
         return f"""(define (problem tamp-task)
     (:domain tamp-agent)
