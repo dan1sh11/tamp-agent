@@ -42,14 +42,18 @@ class PlanExecutor:
     def _grasp_orientation(self):
         return p.getQuaternionFromEuler([0.0, 3.14159265, 0.0])
 
-    def _move_checked(self, position, label: str):
+    def _move_checked(self, position, label: str, orientation=None):
         if not self.env.robot.move_ee(
             position,
-            self._grasp_orientation(),
+            orientation,
             self.env.config.max_motion_steps,
             self.env.config.position_tolerance,
         ):
-            raise PlanExecutionError(f"Robot could not reach {label} at {position}")
+            current, _ = self.env.robot.ee_pose()
+            raise PlanExecutionError(
+                f"Robot could not reach {label} at {position}; "
+                f"current end-effector position is {list(current)}"
+            )
 
     def move_to(self, object_name: str):
         # Resolve the symbolic name through the simulator registry so that the
@@ -64,14 +68,29 @@ class PlanExecutor:
         if self.held_object is None:
             self.env.robot.open_gripper()
 
-        # Do not drive the arm directly from its current joint configuration to
-        # a tabletop target. A joint-space IK transition can sweep through the
-        # table even when the final pose is valid. Move above the workspace,
-        # translate in XY, then descend vertically.
+        # Transit is deliberately position-only. Requiring the final downward
+        # grasp orientation at the high transit pose can make an otherwise
+        # reachable Cartesian position fail the constrained IK solve.
         safe_z = max(approach_z, self.env.config.home_position[2])
-        self._move_checked([x, y, safe_z], f"safe transit pose for '{object_name}'")
-        self._move_checked([x, y, approach_z], f"approach pose for '{object_name}'")
-        self._move_checked([x, y, target_z], f"grasp pose for '{object_name}'")
+        self._move_checked(
+            [x, y, safe_z],
+            f"safe transit pose for '{object_name}'",
+            orientation=None,
+        )
+
+        # Once above the object, impose the downward gripper orientation for
+        # the actual approach and grasp poses.
+        orientation = self._grasp_orientation()
+        self._move_checked(
+            [x, y, approach_z],
+            f"approach pose for '{object_name}'",
+            orientation=orientation,
+        )
+        self._move_checked(
+            [x, y, target_z],
+            f"grasp pose for '{object_name}'",
+            orientation=orientation,
+        )
 
     def grasp(self, object_name: str):
         if self.held_object is not None:
@@ -106,7 +125,11 @@ class PlanExecutor:
         self.held_object = None
 
     def home(self):
-        self._move_checked(self.env.config.home_position, "home pose")
+        self._move_checked(
+            self.env.config.home_position,
+            "home pose",
+            orientation=None,
+        )
 
     def wait(self, steps: int):
         self.env.robot.step(max(0, int(steps)))
