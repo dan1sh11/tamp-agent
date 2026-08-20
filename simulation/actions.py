@@ -6,6 +6,7 @@ from typing import Any
 class ActionType(str, Enum):
     MOVE_TO = "move_to"
     GRASP = "grasp"
+    PLACE = "place"
     RELEASE = "release"
     WAIT = "wait"
     HOME = "home"
@@ -23,6 +24,10 @@ class Action:
     @staticmethod
     def grasp(object_name: str) -> "Action":
         return Action(ActionType.GRASP, {"object": object_name})
+
+    @staticmethod
+    def place(object_name: str, target_name: str) -> "Action":
+        return Action(ActionType.PLACE, {"object": object_name, "target": target_name})
 
     @staticmethod
     def release() -> "Action":
