@@ -65,8 +65,7 @@ The object must be identified. target=null.
 2. PLACE
 Use "place" for a DIRECT request to put/release an object at a destination:
 "put X in Y", "place X in Y", "set X inside Y", "drop X into Y",
-"move X into Y", "move X to Y", "take X to Y" when the sentence describes
-one transfer rather than an explicit two-step command.
+"move X into Y", "move X to Y".
 Preserve the destination as the canonical scene target: box.
 
 3. DROP
@@ -75,11 +74,13 @@ Use "drop" only for an untargeted release:
 If any destination is explicitly stated, use "place", never "drop".
 
 4. MOVE
-Use "move" only for an explicit COMPOUND manipulation request that contains
-both acquisition and placement as separate steps, for example:
+Use "move" for an explicit COMPOUND manipulation request that contains both
+acquisition and placement as separate steps, for example:
 "pick up X and put it in the box"
 "grab X, then place it in the box"
 "take X and put it into the box"
+Also use "move" for the transfer phrasing "take X to Y". In that case the
+user is asking for an object transfer rather than merely acquiring X.
 Do NOT use move merely because the verb "move" appears. "Move the capsule
 into the box" is a direct placement request and must be "place".
 
