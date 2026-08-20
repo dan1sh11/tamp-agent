@@ -23,9 +23,7 @@ class PandaRobot:
             0.0, -0.4, 0.0, -2.2, 0.0, 1.8, 0.8
         ]
 
-        # The Panda URDF has 9 movable degrees of freedom: 7 arm joints and
-        # 2 finger joints. PyBullet's IK damping/limit arrays must match that
-        # DOF count, not just the seven arm joints that we control directly.
+        # Panda has 9 movable DOFs in the URDF: 7 arm joints + 2 finger joints.
         self.ik_lower_limits = [
             -2.8973, -1.7628, -2.8973, -3.0718,
             -2.8973, -0.0175, -2.8973,
@@ -63,6 +61,34 @@ class PandaRobot:
         )
         return state[4], state[5]
 
+    def _ik_solution(self, target_position, target_orientation=None):
+        kwargs = {
+            "lowerLimits": self.ik_lower_limits,
+            "upperLimits": self.ik_upper_limits,
+            "jointRanges": self.ik_joint_ranges,
+            "restPoses": self.ik_rest_poses,
+            "jointDamping": self.ik_joint_damping,
+            "maxNumIterations": 500,
+            "residualThreshold": 1e-5,
+        }
+
+        if target_orientation is not None:
+            kwargs["targetOrientation"] = target_orientation
+
+        solution = p.calculateInverseKinematics(
+            self.body_id,
+            self.ee_link,
+            target_position,
+            **kwargs,
+        )
+
+        if len(solution) < 7:
+            raise RuntimeError(
+                f"PyBullet returned an invalid IK solution with {len(solution)} joints"
+            )
+
+        return solution[:7]
+
     def move_ee(
         self,
         target_position,
@@ -70,35 +96,24 @@ class PandaRobot:
         max_steps=1200,
         tolerance=0.015,
     ):
-        if target_orientation is None:
-            target_orientation = p.getQuaternionFromEuler([0.0, 3.14159, 0.0])
+        # Solve IK once for the requested pose and then drive the motors toward
+        # that fixed joint configuration. Re-solving IK every simulation step
+        # can cause the null-space solution to move with the changing joint
+        # state and prevents convergence for otherwise reachable targets.
+        joint_targets = self._ik_solution(target_position, target_orientation)
 
-        for _ in range(max_steps):
-            joint_targets = p.calculateInverseKinematics(
+        for joint, target in zip(self.arm_joints, joint_targets):
+            p.setJointMotorControl2(
                 self.body_id,
-                self.ee_link,
-                target_position,
-                targetOrientation=target_orientation,
-                lowerLimits=self.ik_lower_limits,
-                upperLimits=self.ik_upper_limits,
-                jointRanges=self.ik_joint_ranges,
-                restPoses=self.ik_rest_poses,
-                jointDamping=self.ik_joint_damping,
-                maxNumIterations=200,
-                residualThreshold=1e-5,
+                joint,
+                p.POSITION_CONTROL,
+                targetPosition=target,
+                force=400,
+                positionGain=0.5,
+                velocityGain=1.0,
             )
 
-            for joint, target in zip(self.arm_joints, joint_targets[:7]):
-                p.setJointMotorControl2(
-                    self.body_id,
-                    joint,
-                    p.POSITION_CONTROL,
-                    targetPosition=target,
-                    force=250,
-                    positionGain=0.25,
-                    velocityGain=1.0,
-                )
-
+        for _ in range(max_steps):
             p.stepSimulation()
 
             current_pos, _ = self.ee_pose()
