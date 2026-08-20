@@ -1,6 +1,6 @@
 import os
 import sys
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from nli.interface import process_instruction
@@ -112,7 +112,7 @@ def main() -> None:
                 log_file.write("=" * 72 + "\n")
                 tee = Tee(sys.stdout, log_file)
                 try:
-                    with redirect_stdout(tee):
+                    with redirect_stdout(tee), redirect_stderr(tee):
                         _run_instruction(user_input, planner, executor)
                 except (
                     PlannerError,
