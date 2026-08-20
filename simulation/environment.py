@@ -2,14 +2,7 @@ import pybullet as p
 import pybullet_data
 
 from .config import SimulationConfig
-from .objects import (
-    ObjectRegistry,
-    create_box,
-    create_box_container,
-    create_capsule,
-    create_cylinder,
-    create_sphere,
-)
+from .objects import ObjectRegistry, create_box, create_box_container, create_cylinder
 from .robot import PandaRobot
 
 
@@ -27,10 +20,10 @@ class TAMPEnvironment:
             p.configureDebugVisualizer(p.COV_ENABLE_SHADOWS, 1)
             p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
             p.resetDebugVisualizerCamera(
-                cameraDistance=2.0,
+                cameraDistance=1.8,
                 cameraYaw=48,
                 cameraPitch=-35,
-                cameraTargetPosition=[-0.05, 0.05, 0.72],
+                cameraTargetPosition=[-0.05, 0.08, 0.72],
             )
 
         self.registry = ObjectRegistry()
@@ -79,15 +72,13 @@ class TAMPEnvironment:
 
     def _spawn_objects(self):
         z = self.config.table_top_z + 0.045
-        # All objects stay on the tabletop but are clustered within the
-        # robot's central workspace. Their symbolic names remain unchanged.
+        # Compact, reachable workcell. Keep the object set limited to simple
+        # primitives that the Panda can reliably grasp.
         specs = [
             ("small_cube_red", "cube", (-0.35, -0.22), (0.030, 0.030, 0.030), (0.85, 0.10, 0.10, 1)),
             ("large_cube_red", "cube", (-0.15, -0.22), (0.065, 0.065, 0.065), (0.95, 0.18, 0.12, 1)),
             ("cylinder_red", "cylinder", (0.05, -0.22), None, (0.85, 0.10, 0.10, 1)),
             ("cylinder_green", "cylinder", (-0.35, 0.02), None, (0.10, 0.75, 0.25, 1)),
-            ("sphere", "sphere", (-0.12, 0.02), None, (0.95, 0.65, 0.10, 1)),
-            ("capsule", "capsule", (0.12, 0.02), None, (0.55, 0.20, 0.90, 1)),
             ("small_cube_blue", "cube", (-0.30, 0.25), (0.030, 0.030, 0.030), (0.10, 0.30, 0.95, 1)),
             ("cylinder_yellow", "cylinder", (-0.05, 0.25), None, (0.95, 0.75, 0.10, 1)),
             ("large_cube_blue", "cube", (0.20, 0.25), (0.065, 0.065, 0.065), (0.10, 0.30, 0.95, 1)),
@@ -97,10 +88,6 @@ class TAMPEnvironment:
                 obj = create_box(name, [x, y, z], dimensions, mass=0.15, rgba=rgba)
             elif kind == "cylinder":
                 obj = create_cylinder(name, [x, y, z], radius=0.045, height=0.09, mass=0.15, rgba=rgba)
-            elif kind == "sphere":
-                obj = create_sphere(name, [x, y, z], radius=0.05, mass=0.12, rgba=rgba)
-            elif kind == "capsule":
-                obj = create_capsule(name, [x, y, z], radius=0.035, height=0.10, mass=0.12, rgba=rgba)
             else:
                 raise ValueError(f"Unknown object kind: {kind}")
             self.registry.add(obj)
@@ -118,7 +105,7 @@ class TAMPEnvironment:
     def contact_points(self, body_a, body_b=None):
         if body_b is None:
             return p.getContactPoints(bodyA=body_a)
-        return p.getContactPoints(bodyA=body_a, bodyB=body_b)
+        return p.getContactPoints(bodyA=body_b, bodyB=body_a)
 
     def get_target_position(self, name):
         if name == "box":
