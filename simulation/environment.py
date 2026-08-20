@@ -72,8 +72,6 @@ class TAMPEnvironment:
 
     def _spawn_objects(self):
         z = self.config.table_top_z + 0.045
-        # Compact, reachable workcell. Keep the object set limited to simple
-        # primitives that the Panda can reliably grasp.
         specs = [
             ("small_cube_red", "cube", (-0.35, -0.22), (0.030, 0.030, 0.030), (0.85, 0.10, 0.10, 1)),
             ("large_cube_red", "cube", (-0.15, -0.22), (0.065, 0.065, 0.065), (0.95, 0.18, 0.12, 1)),
@@ -86,10 +84,10 @@ class TAMPEnvironment:
         for name, kind, (x, y), dimensions, rgba in specs:
             if kind == "cube":
                 obj = create_box(name, [x, y, z], dimensions, mass=0.15, rgba=rgba)
-            elif kind == "cylinder":
-                obj = create_cylinder(name, [x, y, z], radius=0.045, height=0.09, mass=0.15, rgba=rgba)
             else:
-                raise ValueError(f"Unknown object kind: {kind}")
+                obj = create_cylinder(
+                    name, [x, y, z], radius=0.045, height=0.09, mass=0.15, rgba=rgba
+                )
             self.registry.add(obj)
 
         for _ in range(240):
@@ -102,6 +100,11 @@ class TAMPEnvironment:
     def get_object_position(self, name):
         return self.get_object_pose(name)[0]
 
+    def get_object_half_height(self, name):
+        obj = self.registry.get(name)
+        aabb_min, aabb_max = p.getAABB(obj.body_id)
+        return (aabb_max[2] - aabb_min[2]) / 2.0
+
     def contact_points(self, body_a, body_b=None):
         if body_b is None:
             return p.getContactPoints(bodyA=body_a)
@@ -109,12 +112,24 @@ class TAMPEnvironment:
 
     def get_target_position(self, name):
         if name == "box":
+            # This is the geometric center of the box opening. Motion execution
+            # uses a separate release height so the held object enters vertically
+            # through the opening instead of striking the rim.
             return (
                 self.config.box_center[0],
                 self.config.box_center[1],
-                self.config.table_top_z + self.config.box_size[2] * 0.65,
+                self.config.table_top_z + self.config.box_size[2],
             )
         return self.get_object_position(name)
+
+    def get_box_place_position(self, object_name):
+        half_height = self.get_object_half_height(object_name)
+        floor_z = self.config.table_top_z + 0.01
+        return (
+            self.config.box_center[0],
+            self.config.box_center[1],
+            floor_z + half_height + 0.012,
+        )
 
     def close(self):
         if p.isConnected(self.client_id):
