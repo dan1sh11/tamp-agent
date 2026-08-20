@@ -8,7 +8,6 @@ class SimulationConfig:
     panda_base_xy: tuple[float, float] = (-0.65, 0.0)
 
     # The receptacle is centered on the table and on the Panda's approach axis.
-    # Its long axis is transverse to the robot's forward (+X) direction.
     box_center: tuple[float, float] = (0.0, 0.0)
     box_size: tuple[float, float, float] = (0.34, 0.28, 0.20)
 
@@ -18,6 +17,9 @@ class SimulationConfig:
 
     approach_height: float = 0.20
     grasp_height_offset: float = 0.055
+    grasp_tolerance: float = 0.050
+    release_clearance: float = 0.012
+    release_settle_steps: int = 45
     home_position: tuple[float, float, float] = (0.05, 0.0, 1.05)
 
     position_tolerance: float = 0.015
