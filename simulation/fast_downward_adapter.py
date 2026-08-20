@@ -26,6 +26,8 @@ def parse_fast_downward_plan(plan_text: str) -> list[Action]:
         if action_name == "pick" and len(arguments) == 1:
             obj = arguments[0]
             actions.extend([Action.move_to(obj), Action.grasp(obj)])
+        elif action_name == "drop" and len(arguments) == 1:
+            actions.append(Action.release())
         elif action_name == "place" and len(arguments) == 2:
             obj, target = arguments
             actions.extend([Action.move_to(target), Action.release()])
