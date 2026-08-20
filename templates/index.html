@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TAMP Agent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">TASK & MOTION PLANNING</p>
+        <h1>TAMP Agent</h1>
+        <p class="sub">Natural language → symbolic planning → robot execution.</p>
+      </div>
+      <span id="status" class="status">CHECKING</span>
+    </header>
+
+    <section class="command panel">
+      <label for="instruction">Robot instruction</label>
+      <textarea id="instruction" rows="3" placeholder="Pick up the blue cube."></textarea>
+      <div class="examples">
+        <button data-command="Pick up the blue cube.">Pick blue cube</button>
+        <button data-command="Put the red cube in the box.">Put red cube in box</button>
+        <button data-command="Pick up the green cylinder.">Pick green cylinder</button>
+      </div>
+      <button id="execute" class="primary">PLAN TASK</button>
+      <p id="error" class="error"></p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="panel-head"><h2>Natural Language Interface</h2><span>Mistral / fallback</span></div>
+        <pre id="nli">Waiting for instruction...</pre>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>Symbolic Plan</h2><span>Fast Downward</span></div>
+        <pre id="plan">Waiting for plan...</pre>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Generated PDDL Problem</h2><span>Planning layer</span></div>
+      <pre id="pddl">Waiting for task...</pre>
+    </section>
+
+    <section class="panel execution">
+      <div class="panel-head"><h2>Execution</h2><span>PyBullet</span></div>
+      <div id="execution">The web interface currently validates the plan. Local PyBullet execution remains available through <code>main.py</code>.</div>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
