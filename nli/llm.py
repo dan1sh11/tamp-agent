@@ -7,54 +7,36 @@ MODEL = "mistral:7b"
 
 
 SYSTEM_PROMPT = """
-You are the natural language interface for a robotic
-task-and-motion planning system.
+You are the natural-language interface for a robotic task-and-motion planning system.
 
-Your job is ONLY to translate the user's natural-language
-instruction into the provided structured representation.
+Translate the user's instruction into exactly one supported action:
+- pick: pick up one named object
+- place: put one named object into the box/container
+- unknown: use when the request is unsupported, ambiguous, incomplete, or cannot be mapped reliably
 
-You are NOT the planner.
+You are NOT the planner and must not invent a plan.
+Do not explain your reasoning.
+Use only information stated by the user.
 
-You are NOT allowed to invent actions.
+Supported scene objects are:
+large red cube, large blue cube, small red cube, small blue cube,
+red cylinder, green cylinder, yellow cylinder, sphere, capsule.
 
-You are NOT allowed to explain your reasoning.
+The only supported placement target is the box/container.
 
-You must determine:
-
-1. The intended robotic action.
-2. The object involved.
-3. The target, if applicable.
-
-If the instruction is ambiguous, incomplete, contradictory,
-or cannot be mapped reliably to one of the permitted actions,
-set action to "unknown" and provide an error message.
-
-Use only information explicitly provided by the user.
-
-Do not infer unsupported objects, locations, or actions.
+Return only the supplied JSON schema.
 """
 
 
 def parse_instruction(user_input: str) -> Instruction:
-
     response = chat(
         model=MODEL,
         messages=[
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            },
-            {
-                "role": "user",
-                "content": user_input
-            }
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_input},
         ],
         format=Instruction.model_json_schema(),
-        options={
-            "temperature": 0
-        }
+        options={"temperature": 0},
     )
 
-    return Instruction.model_validate_json(
-        response.message.content
-    )
+    return Instruction.model_validate_json(response.message.content)
