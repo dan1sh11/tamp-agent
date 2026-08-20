@@ -1,91 +1,135 @@
 # TAMP Agent
 
-A web-accessible task-and-motion planning prototype that converts natural-language robot commands into validated symbolic plans and, locally, executes those plans in a PyBullet Franka Panda simulation.
+A CLI-based Task-and-Motion Planning (TAMP) pipeline that connects a local language model to symbolic planning and a PyBullet robot simulation.
 
 ## Architecture
 
 ```text
-Browser
-   |
-   v
-Flask Web Interface
-   |
-   +--> Local Mistral 7B via Ollama
-   |        |
-   |        v
-   |    Structured Instruction
-   |        |
-   +--------+
-            v
-      PDDL Problem Generator
-            |
-            v
-       Fast Downward
-            |
-            v
-     Plan -> Action Adapter
-            |
-            v
-       PyBullet + Panda
+Natural-language instruction
+          |
+          v
++-------------------------+
+| NLI / Mistral 7B        |
+| language -> JSON        |
++------------+------------+
+             |
+             v
++-------------------------+
+| PDDL Generator          |
+| JSON -> problem.pddl    |
++------------+------------+
+             |
+             v
++-------------------------+
+| Fast Downward           |
+| PDDL -> symbolic plan   |
++------------+------------+
+             |
+             v
++-------------------------+
+| Plan Adapter             |
+| symbolic -> robot ops   |
++------------+------------+
+             |
+             v
++-------------------------+
+| PyBullet / Franka Panda |
+| simulated execution     |
++-------------------------+
 ```
 
-The LLM is deliberately restricted to natural-language interpretation. PDDL planning and robot execution remain deterministic layers.
+The LLM is deliberately limited to language interpretation. It does not generate robot commands directly. The planner owns symbolic action sequencing, and the simulator owns physical execution.
 
-## Web interface
+## Supported tasks
 
-The browser dashboard exposes the NLI output, generated PDDL, symbolic plan, and execution status. Start it locally with:
+The current domain intentionally stays small and deterministic:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
+- `pick <object>`
+- `place <object> in the box`
 
-Then open `http://localhost:5000`.
-
-## Local Mistral
-
-Install Ollama and pull the model used by `nli/llm.py`:
-
-```bash
-ollama pull mistral:7b
-ollama serve
-```
-
-The web backend calls Ollama through its local API. No paid LLM API is required.
-
-If Ollama is unavailable, the web API falls back to a deterministic parser for the supported scene vocabulary so the interface can still demonstrate the planning pipeline.
-
-## Local robot simulation
-
-The full PyBullet GUI remains available through:
-
-```bash
-python main.py
-```
-
-The web server intentionally does not attempt to launch a desktop PyBullet GUI. A future browser-based 3D viewer can consume simulation state from a headless PyBullet process.
-
-## Supported objects
+Supported scene objects:
 
 - large red cube
 - large blue cube
 - small red cube
 - small blue cube
-- red / green / yellow cylinders
+- red cylinder
+- green cylinder
+- yellow cylinder
 - sphere
 - capsule
-- box receptacle
 
-## Example commands
+Natural-language aliases such as `red cube`, `blue cube`, `container`, and `box` are canonicalized before PDDL generation.
 
-```text
-Pick up the blue cube.
-Put the red cube in the box.
-Pick up the green cylinder.
+## Running locally
+
+Install the Python dependencies:
+
+```bash
+pip install -r requirements.txt
 ```
 
-## Project status
+Install and build Fast Downward separately. The project does not vendor the planner distribution because its compiled binaries exceed GitHub's normal repository file-size limit.
 
-This is a research/portfolio prototype. The current web layer plans and validates tasks; full physical execution is retained as a local PyBullet workflow. Browser-based 3D execution is the next architectural extension.
+Fast Downward can be supplied explicitly:
+
+```bash
+export FAST_DOWNWARD_PATH=/path/to/fast-downward.py
+```
+
+The application also checks for `fast-downward.py` on `PATH` and falls back to a deterministic local planner for the two supported task types when Fast Downward is unavailable. This keeps the complete CLI and simulator runnable while preserving the same planner-to-simulator contract.
+
+Start the system:
+
+```bash
+python main.py
+```
+
+Example:
+
+```text
+Robot instruction: pick up the blue cube
+```
+
+The terminal displays the NLI JSON, generated planner output, normalized simulator actions, and execution status while the PyBullet GUI shows the Panda operating in the workcell.
+
+## Repository layout
+
+```text
+tamp-agent/
+├── main.py
+├── nli/
+│   ├── interface.py
+│   ├── llm.py
+│   ├── schema.py
+│   └── validator.py
+├── planning/
+│   ├── domain.pddl
+│   ├── pddl_generator.py
+│   ├── planner.py
+│   └── plan_parser.py
+├── simulation/
+│   ├── actions.py
+│   ├── config.py
+│   ├── environment.py
+│   ├── executor.py
+│   ├── fast_downward_adapter.py
+│   ├── objects.py
+│   └── robot.py
+└── requirements.txt
+```
+
+## Design boundaries
+
+### NLI
+Produces a validated `Instruction` object. It is responsible for semantics, object aliases, and rejecting unsupported requests.
+
+### Planner
+Generates a typed PDDL problem and obtains a symbolic plan from Fast Downward when available. The fallback produces the same normalized action language for the small current domain.
+
+### Simulation
+Converts symbolic actions into robot motion, grasp, and release procedures. The PyBullet scene contains a fixed-base Franka Panda, a complete workbench, a placement box, and a set of colored manipulation objects.
+
+## Status
+
+The project is intentionally CLI-first. The current goal is a reliable, inspectable end-to-end architecture rather than a web interface.
