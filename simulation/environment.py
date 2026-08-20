@@ -95,27 +95,62 @@ class TAMPEnvironment:
     def _spawn_objects(self):
         z = self.config.table_top_z + 0.045
         specs = [
-            ("small_cube_red", "cube", (-0.18, -0.30), (0.85, 0.10, 0.10, 1)),
-            ("large_cube_red", "cube", (0.05, -0.30), (0.95, 0.18, 0.12, 1)),
-            ("cylinder_red", "cylinder", (0.28, -0.30), (0.85, 0.10, 0.10, 1)),
-            ("cylinder_green", "cylinder", (-0.28, 0.05), (0.10, 0.75, 0.25, 1)),
-            ("sphere", "sphere", (-0.05, 0.08), (0.95, 0.65, 0.10, 1)),
-            ("capsule", "capsule", (0.20, 0.06), (0.55, 0.20, 0.90, 1)),
-            ("small_cube_blue", "cube", (-0.38, 0.32), (0.10, 0.30, 0.95, 1)),
-            ("cylinder_yellow", "cylinder", (-0.12, 0.33), (0.95, 0.75, 0.10, 1)),
-            ("large_cube_blue", "cube", (0.40, -0.02), (0.10, 0.30, 0.95, 1)),
+            ("small_cube_red", "cube", (-0.18, -0.30), (0.030, 0.030, 0.030), (0.85, 0.10, 0.10, 1)),
+            ("large_cube_red", "cube", (0.05, -0.30), (0.065, 0.065, 0.065), (0.95, 0.18, 0.12, 1)),
+
+            ("cylinder_red", "cylinder", (0.28, -0.30), None, (0.85, 0.10, 0.10, 1)),
+            ("cylinder_green", "cylinder", (-0.28, 0.05), None, (0.10, 0.75, 0.25, 1)),
+
+            ("sphere", "sphere", (-0.05, 0.08), None, (0.95, 0.65, 0.10, 1)),
+            ("capsule", "capsule", (0.20, 0.06), None, (0.55, 0.20, 0.90, 1)),
+
+            ("small_cube_blue", "cube", (-0.38, 0.32), (0.030, 0.030, 0.030), (0.10, 0.30, 0.95, 1)),
+            ("cylinder_yellow", "cylinder", (-0.12, 0.33), None, (0.95, 0.75, 0.10, 1)),
+            ("large_cube_blue", "cube", (0.40, -0.02), (0.065, 0.065, 0.065), (0.10, 0.30, 0.95, 1)),
         ]
-        for name, kind, (x, y), rgba in specs:
+        for name, kind, (x, y), dimensions, rgba in specs:
+
             if kind == "cube":
-                obj = create_box(name, [x, y, z], [0.045, 0.045, 0.045], mass=0.15, rgba=rgba)
+                obj = create_box(
+                    name,
+                    [x, y, z],
+                    dimensions,
+                    mass=0.15,
+                    rgba=rgba
+                )
+
             elif kind == "cylinder":
-                obj = create_cylinder(name, [x, y, z], radius=0.045, height=0.09, mass=0.15, rgba=rgba)
+                obj = create_cylinder(
+                    name,
+                    [x, y, z],
+                    radius=0.045,
+                    height=0.09,
+                    mass=0.15,
+                    rgba=rgba
+                )
+
             elif kind == "sphere":
-                obj = create_sphere(name, [x, y, z], radius=0.05, mass=0.12, rgba=rgba)
+                obj = create_sphere(
+                    name,
+                    [x, y, z],
+                    radius=0.05,
+                    mass=0.12,
+                    rgba=rgba
+                )
+
             elif kind == "capsule":
-                obj = create_capsule(name, [x, y, z], radius=0.035, height=0.10, mass=0.12, rgba=rgba)
+                obj = create_capsule(
+                    name,
+                    [x, y, z],
+                    radius=0.035,
+                    height=0.10,
+                    mass=0.12,
+                    rgba=rgba
+                )
+
             else:
                 raise ValueError(f"Unknown object kind: {kind}")
+
             self.registry.add(obj)
         for _ in range(240):
             p.stepSimulation()
@@ -123,15 +158,7 @@ class TAMPEnvironment:
     def _add_scene_labels(self):
         if not self.gui:
             return
-        p.addUserDebugText(
-            "TAMP WORKCELL", [0.0, -0.53, 0.82], textSize=1.2, textColorRGB=[0.85, 0.9, 1.0]
-        )
-        p.addUserDebugText(
-            "PLACE TARGET",
-            [self.config.box_center[0], self.config.box_center[1], 0.97],
-            textSize=0.9,
-            textColorRGB=[0.9, 0.9, 0.9],
-        )
+
 
     def get_object_pose(self, name):
         obj = self.registry.get(name)
