@@ -20,6 +20,8 @@ class PlanExecutor:
         for index, action in enumerate(actions):
             try:
                 self.execute_one(action)
+            except PlanExecutionError:
+                raise
             except Exception as exc:
                 raise PlanExecutionError(f"Action {index} failed: {action} ({exc})") from exc
 
@@ -28,6 +30,8 @@ class PlanExecutor:
             self.move_to(action.parameters["object"])
         elif action.type == ActionType.GRASP:
             self.grasp(action.parameters["object"])
+        elif action.type == ActionType.PLACE:
+            self.place(action.parameters["object"], action.parameters["target"])
         elif action.type == ActionType.RELEASE:
             self.release()
         elif action.type == ActionType.WAIT:
@@ -72,31 +76,35 @@ class PlanExecutor:
         self._move_checked([x, y, target_z], f"grasp pose for '{object_name}'", orientation)
 
     def _move_to_box(self):
-        """Enter the centered box through its opening, then descend vertically."""
+        if self.held_object is None:
+            raise PlanExecutionError("Cannot move to box without holding an object")
         x, y, top_z = self.env.get_target_position("box")
         release_x, release_y, release_z = self.env.get_box_place_position(self.held_object)
         orientation = self._grasp_orientation()
-
-        # First clear the container walls completely while travelling laterally.
         transit_z = top_z + self.env.config.approach_height
         self._move_checked([x, y, transit_z], "safe transit pose above box", orientation)
-
-        # Descend through the opening. The release height is derived from the
-        # actual held object's AABB, not from an object-specific constant.
-        self._move_checked(
-            [release_x, release_y, release_z],
-            "box placement pose",
-            orientation,
-        )
+        self._move_checked([release_x, release_y, release_z], "box placement pose", orientation)
 
     def grasp(self, object_name: str):
         if self.held_object is not None:
             raise PlanExecutionError(f"Robot already holds '{self.held_object}'")
 
         obj = self.env.registry.get(object_name)
+        ee_pos, ee_orn = self.env.robot.ee_pose()
+        obj_pos, obj_orn = self.env.get_object_pose(object_name)
+        distance = sum((ee_pos[i] - obj_pos[i]) ** 2 for i in range(3)) ** 0.5
+        if distance > self.env.config.grasp_tolerance:
+            raise PlanExecutionError(
+                f"Grasp pose is too far from '{object_name}' ({distance:.3f} m)"
+            )
+
         self.env.robot.close_gripper()
         self.env.robot.step(self.env.config.grasp_settle_steps)
 
+        inv_ee_pos, inv_ee_orn = p.invertTransform(ee_pos, ee_orn)
+        parent_pos, parent_orn = p.multiplyTransforms(
+            inv_ee_pos, inv_ee_orn, obj_pos, obj_orn
+        )
         self.grasp_constraint = p.createConstraint(
             self.env.robot.body_id,
             self.env.robot.ee_link,
@@ -104,19 +112,47 @@ class PlanExecutor:
             -1,
             p.JOINT_FIXED,
             [0, 0, 0],
+            parent_pos,
             [0, 0, 0],
-            [0, 0, 0],
+            parent_orn,
+        )
+        p.setCollisionFilterPair(
+            self.env.robot.body_id,
+            obj.body_id,
+            -1,
+            -1,
+            enableCollision=0,
         )
         self.held_object = object_name
+
+    def place(self, object_name: str, target_name: str):
+        if self.held_object != object_name:
+            raise PlanExecutionError(
+                f"Cannot place '{object_name}'; currently holding '{self.held_object}'"
+            )
+        if target_name != "box":
+            raise PlanExecutionError(f"Unsupported placement target '{target_name}'")
+        self._move_to_box()
+        self.release()
 
     def release(self):
         if self.held_object is None:
             return
+        object_name = self.held_object
+        obj = self.env.registry.get(object_name)
         if self.grasp_constraint is not None:
             p.removeConstraint(self.grasp_constraint)
         self.grasp_constraint = None
         self.env.robot.open_gripper()
-        self.env.robot.step(45)
+        self.env.robot.step(self.env.config.release_settle_steps)
+        p.setCollisionFilterPair(
+            self.env.robot.body_id,
+            obj.body_id,
+            -1,
+            -1,
+            enableCollision=1,
+        )
+        self.env.robot.step(self.env.config.release_settle_steps)
         self.held_object = None
 
     def home(self):
