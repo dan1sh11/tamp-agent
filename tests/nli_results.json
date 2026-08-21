@@ -1,9 +1,491 @@
 {
   "model": "mistral:7b",
-  "status": "not_run_in_github_environment",
-  "case_count": 20,
-  "passed": null,
-  "failed": null,
-  "accuracy": null,
-  "note": "Run python tests/run_nli_benchmark.py on the machine hosting the local Ollama mistral:7b model. This file is intentionally not populated with fabricated model results."
+  "temperature": 0,
+  "case_count": 30,
+  "passed": 24,
+  "failed": 6,
+  "accuracy": 0.8,
+  "note": "Results are generated from the local Ollama model; run this script on the machine hosting mistral:7b.",
+  "cases": [
+    {
+      "id": "pick_large_red",
+      "input": "Pick up the large red cube.",
+      "expected": {
+        "action": "pick",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_large_blue",
+      "input": "Grab the big blue block.",
+      "expected": {
+        "action": "pick",
+        "object": "large_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "large_cube_blue",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_small_red",
+      "input": "Take the tiny red block.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_red",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "small_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_small_blue",
+      "input": "Grab the little blue cube.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_green",
+      "input": "Take the green cylinder.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_yellow",
+      "input": "Get the yellow cylinder off the table.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_yellow",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_yellow",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_red_cylinder",
+      "input": "Grab the red cylinder.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_red",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_sphere",
+      "input": "Lift the sphere.",
+      "expected": {
+        "action": "pick",
+        "object": "sphere",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "sphere",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "pick_capsule",
+      "input": "Get the capsule.",
+      "expected": {
+        "action": "pick",
+        "object": "capsule",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "capsule",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "alias_little",
+      "input": "Grab the little blue cube.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "small_cube_blue",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "alias_big",
+      "input": "Take the big blue block.",
+      "expected": {
+        "action": "pick",
+        "object": "large_cube_blue",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "large_cube_blue",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "alias_tiny",
+      "input": "Pick up the tiny red cube.",
+      "expected": {
+        "action": "pick",
+        "object": "small_cube_red",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "small_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "typo_green",
+      "input": "Grab the greeen cylinder.",
+      "expected": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "place_box",
+      "input": "Put the red cylinder in the box.",
+      "expected": {
+        "action": "place",
+        "object": "cylinder_red",
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": "cylinder_red",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "place_container",
+      "input": "Drop the sphere into the container.",
+      "expected": {
+        "action": "place",
+        "object": "sphere",
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": "sphere",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "place_bin",
+      "input": "Set the big blue block inside the bin.",
+      "expected": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "place_move_verb",
+      "input": "Move the capsule into the box.",
+      "expected": {
+        "action": "place",
+        "object": "capsule",
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": "capsule",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "place_set",
+      "input": "Set the small red cube in the receptacle.",
+      "expected": {
+        "action": "place",
+        "object": "small_cube_red",
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": "small_cube_red",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "drop_contextual",
+      "input": "Drop it.",
+      "expected": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "drop_release",
+      "input": "Release it.",
+      "expected": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "drop",
+        "object": null,
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "compound_pick_place",
+      "input": "Pick up the green cylinder and put it in the box.",
+      "expected": {
+        "action": "move",
+        "object": "cylinder_green",
+        "target": "box"
+      },
+      "actual": {
+        "action": "pick",
+        "object": "cylinder_green",
+        "target": "null"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "compound_grab_place",
+      "input": "Grab the sphere, then place it in the box.",
+      "expected": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "transfer_take_to",
+      "input": "Take the sphere to the container.",
+      "expected": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "ambiguous_red_cube",
+      "input": "Pick up the red cube.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "pick",
+        "object": "small_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_blue_cube",
+      "input": "Put the blue cube in the box.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "place",
+        "object": "large_cube_blue",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "ambiguous_pronoun",
+      "input": "Grab that one.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "actual": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "contextual_object",
+      "input": "Put it in the box.",
+      "expected": {
+        "action": "place",
+        "object": null,
+        "target": "box"
+      },
+      "actual": {
+        "action": "place",
+        "object": null,
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": true
+    },
+    {
+      "id": "unsupported_rotate",
+      "input": "Rotate the cube ninety degrees.",
+      "expected": {
+        "action": "unknown",
+        "object": "cube",
+        "target": null
+      },
+      "actual": {
+        "action": "unknown",
+        "object": "large_cube_red",
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "unsupported_robot_move",
+      "input": "Move the robot arm to the left side of the table.",
+      "expected": {
+        "action": "unknown",
+        "object": null,
+        "target": "left side of the table"
+      },
+      "actual": {
+        "action": "unknown",
+        "object": null,
+        "target": null
+      },
+      "model_error": null,
+      "pass": false
+    },
+    {
+      "id": "unsupported_push",
+      "input": "Push the sphere toward the box.",
+      "expected": {
+        "action": "unknown",
+        "object": "sphere",
+        "target": "box"
+      },
+      "actual": {
+        "action": "move",
+        "object": "sphere",
+        "target": "box"
+      },
+      "model_error": null,
+      "pass": false
+    }
+  ]
 }
